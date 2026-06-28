@@ -210,7 +210,7 @@ docker-compose exec app bash   # Acessar container
 
 ## Desenvolvimento
 
-Desenvolvido por Thainara Bortoleto com auxílio de IA (Claude 3.5 Sonnet) para implementação de funcionalidades complexas, otimização de código e resolução de problemas técnicos.
+Desenvolvido por Thainara Bortoleto com auxílio de IA (Claude 3.5 Sonnet) documentação e melhorias tecnicas
 
 ## Autor
 
