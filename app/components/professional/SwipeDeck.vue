@@ -1,20 +1,14 @@
 <template>
-  <div class="flex flex-col items-center gap-8 w-full">
+  <div class="flex flex-col items-center w-full h-screen md:gap-8 md:h-auto md:py-8">
     <!-- Contador -->
-    <div class="flex items-center justify-between w-full max-w-2xl px-4">
-      <button
-        class="text-slate-400 hover:text-white text-sm transition-colors"
-        @click="$emit('back')"
-      >
-        ← Voltar
-      </button>
-      <span class="text-slate-500 text-sm">
+    <div class="flex items-center justify-center w-full max-w-2xl px-4 md:px-0 py-2 md:py-0">
+      <span class="text-slate-500 text-xs md:text-sm">
         {{ remaining }} de {{ total }} restantes
       </span>
     </div>
 
     <!-- Deck Container -->
-    <div class="relative w-full max-w-2xl mx-auto">
+    <div class="relative w-full max-w-2xl mx-auto flex-1 md:flex-none flex flex-col md:gap-4">
       <!-- Arrow Hints -->
       <div class="absolute top-1/2 left-0 right-0 -translate-y-1/2 z-20 px-4 flex justify-between pointer-events-none">
         <!-- Left Arrow (Reject) -->
@@ -37,10 +31,21 @@
       </div>
 
       <!-- Deck -->
-      <div class="relative w-full" style="height: 640px">
+      <div class="relative w-full max-w-2xl mx-auto" :style="{ height: isMobile ? '420px' : '720px' }">
+        <!-- Loading state -->
+        <div
+          v-if="loading"
+          class="absolute inset-0 bg-slate-800 rounded-2xl border border-slate-700 flex flex-col items-center justify-center gap-4"
+        >
+          <div class="flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-slate-600 border-t-indigo-500 rounded-full animate-spin"></div>
+            <p class="text-slate-400 text-sm">Carregando profissionais...</p>
+          </div>
+        </div>
+
         <!-- Empty state -->
         <div
-          v-if="isEmpty"
+          v-else-if="isEmpty"
           class="absolute inset-0 bg-slate-800 rounded-2xl border border-slate-700 flex flex-col items-center justify-center gap-4"
         >
           <p class="text-white font-bold text-xl">Acabou por aqui!</p>
@@ -57,9 +62,9 @@
         <div
           v-for="(prof, index) in visibleCards"
           :key="prof.id"
-          class="absolute inset-0 cursor-grab active:cursor-grabbing"
+          class="absolute inset-0 cursor-grab active:cursor-grabbing touch-none"
           :style="cardStyle(index)"
-          v-bind="index === 0 ? dragBindings : {}"
+          v-bind="index === 0 ? { ...dragBindings, ...touchBindings } : {}"
         >
           <!-- Overlay de swipe -->
           <div
@@ -75,25 +80,25 @@
             </span>
           </div>
 
-          <ProfessionalCard :professional="prof" class="h-full" />
+          <ProfessionalCard :professional="prof" :is-deck="true" class="h-full" />
         </div>
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="flex gap-8 max-w-sm w-full text-center text-sm">
+    <!-- Stats (hidden in mobile) -->
+    <div v-if="!isMobile" :class="['flex max-w-sm w-full text-center gap-8 text-sm']">
       <div class="flex-1">
-        <p class="text-red-400 font-bold">{{ skipCount }}</p>
+        <p class="text-red-400 font-bold text-lg">{{ skipCount }}</p>
         <p class="text-slate-500 text-xs">Rejeitados</p>
       </div>
       <div class="flex-1">
-        <p class="text-emerald-400 font-bold">{{ matchCount }}</p>
+        <p class="text-emerald-400 font-bold text-lg">{{ matchCount }}</p>
         <p class="text-slate-500 text-xs">Matches</p>
       </div>
     </div>
 
-    <!-- Botoes -->
-    <div class="flex items-center gap-8">
+    <!-- Botoes (hidden in mobile) -->
+    <div v-if="!isMobile" class="flex items-center gap-8">
       <button
         class="w-16 h-16 rounded-full bg-slate-800 border-2 border-red-500/40 text-red-400
                flex items-center justify-center hover:bg-red-500/10 hover:border-red-500
@@ -153,6 +158,7 @@ import type { Professional } from '~/types'
 
 const props = defineProps<{
   professionals: Professional[]
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -160,6 +166,9 @@ const emit = defineEmits<{
   skip: [professional: Professional]
   back: []
 }>()
+
+const { width } = useWindowSize()
+const isMobile = computed(() => width.value < 768)
 
 const listRef = computed(() => props.professionals)
 const deck = useSwipeDeck(listRef)
@@ -176,9 +185,11 @@ const skipCount = computed(() => {
   return skips.value.length
 })
 
-// Drag com mouse
+// Drag com mouse e touch
 const dragX = ref(0)
 const isDragging = ref(false)
+const startTouchX = ref(0)
+const swipeDirection = ref<'left' | 'right' | null>(null)
 
 const dragOverlay = computed(() => {
   if (!isDragging.value) return null
@@ -186,6 +197,35 @@ const dragOverlay = computed(() => {
   if (dragX.value < -60) return 'left'
   return null
 })
+
+// Touch handlers
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length === 0) return
+  startTouchX.value = e.touches[0]!.clientX
+  isDragging.value = true
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!isDragging.value || e.touches.length === 0) return
+  const currentX = e.touches[0]!.clientX
+  dragX.value = currentX - startTouchX.value
+}
+
+async function onTouchEnd() {
+  isDragging.value = false
+  if (Math.abs(dragX.value) > 100) {
+    if (dragX.value < 0) await handleSkip()
+    else await handleMatch()
+  } else {
+    dragX.value = 0
+  }
+}
+
+const touchBindings = {
+  onTouchstart: onTouchStart,
+  onTouchmove: onTouchMove,
+  onTouchend: onTouchEnd,
+}
 
 function onMouseDown(e: MouseEvent) {
   const startX = e.clientX
@@ -200,8 +240,9 @@ function onMouseDown(e: MouseEvent) {
     if (Math.abs(dragX.value) > 100) {
       if (dragX.value < 0) await handleSkip()
       else await handleMatch()
+    } else {
+      dragX.value = 0
     }
-    dragX.value = 0
     window.removeEventListener('mousemove', onMove)
     window.removeEventListener('mouseup', onUp)
   }
@@ -214,14 +255,24 @@ const dragBindings = { onMousedown: onMouseDown }
 
 function cardStyle(index: number) {
   const isTop = index === 0
-  const rotate = isTop && isDragging.value ? dragX.value * 0.08 : 0
-  const translateX = isTop && isDragging.value ? dragX.value : 0
+
+  // Durante o drag do usuário
+  let translateX = isTop && isDragging.value ? dragX.value : 0
+  let rotate = isTop && isDragging.value ? dragX.value * 0.08 : 0
+
+  // Após o swipe - faz o card sair completamente
+  if (isTop && deck.isAnimating.value && swipeDirection.value) {
+    const exitDistance = swipeDirection.value === 'left' ? -500 : 500
+    translateX = exitDistance
+    rotate = (exitDistance / 500) * 20
+  }
+
   const scale = 1 - index * 0.04
   const translateY = index * 12
 
   return {
     transform: `translateX(${translateX}px) rotate(${rotate}deg) scale(${scale}) translateY(${translateY}px)`,
-    transition: isDragging.value && isTop ? 'none' : 'transform 0.3s ease',
+    transition: isDragging.value && isTop ? 'none' : 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
     zIndex: 10 - index,
   }
 }
@@ -229,16 +280,22 @@ function cardStyle(index: number) {
 async function handleSkip() {
   if (!current.value || deck.isAnimating.value) return
   const prof = current.value
+  swipeDirection.value = 'left'
   addSkip(prof)
   await deck.swipeLeft()
+  swipeDirection.value = null
+  dragX.value = 0
   emit('skip', prof)
 }
 
 async function handleMatch() {
   if (!current.value || deck.isAnimating.value) return
   const prof = current.value
+  swipeDirection.value = 'right'
   addMatch(prof)
   await deck.swipeRight()
+  swipeDirection.value = null
+  dragX.value = 0
   emit('match', prof)
 }
 

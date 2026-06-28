@@ -4,7 +4,7 @@
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        class="pointer-events-auto px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm border animate-in fade-in slide-in-from-top-2 duration-200"
+        class="pointer-events-auto px-4 py-3 rounded-lg shadow-lg backdrop-blur border animate-in fade-in slide-in-from-top-2 duration-200"
         :class="toastClass(toast.type)"
       >
         <div class="flex items-center gap-3">
@@ -37,12 +37,12 @@ function toastIcon(type: string) {
 
 function toastClass(type: string) {
   const classes: Record<string, string> = {
-    success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-    error: 'bg-red-500/10 border-red-500/30 text-red-400',
-    info: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
-    warning: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+    success: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300',
+    error: 'bg-red-500/20 border-red-500/50 text-red-300',
+    info: 'bg-blue-500/20 border-blue-500/50 text-blue-300',
+    warning: 'bg-amber-500/20 border-amber-500/50 text-amber-300',
   }
-  return classes[type] || 'bg-slate-500/10 border-slate-500/30 text-slate-400'
+  return classes[type] || 'bg-slate-500/20 border-slate-500/50 text-slate-300'
 }
 </script>
 
