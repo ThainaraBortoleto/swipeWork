@@ -23,43 +23,56 @@ export function useProfessionals() {
     let query = supabase.from('professionals').select('*', { count: 'exact' })
 
     if (filters?.search) {
+      console.log('🔎 Aplicando filtro de busca:', filters.search)
       query = query.or(`name.ilike.%${filters.search}%,profession.ilike.%${filters.search}%`)
     }
     if (filters?.category) {
+      console.log('📁 Aplicando filtro de categoria:', filters.category)
       query = query.eq('category', filters.category)
     }
     if (filters?.availableOnly) {
+      console.log('✅ Filtrando apenas profissionais disponíveis')
       query = query.eq('available', true)
     }
     if (filters?.minRate) {
+      console.log('💰 Filtro de taxa mínima:', filters.minRate)
       query = query.gte('hourly_rate', filters.minRate)
     }
     if (filters?.maxRate) {
+      console.log('💰 Filtro de taxa máxima:', filters.maxRate)
       query = query.lte('hourly_rate', filters.maxRate)
     }
     if (filters?.state) {
+      console.log('📍 Aplicando filtro de estado:', filters.state)
       query = query.eq('state', filters.state)
     }
     if (filters?.city) {
+      console.log('🏙️ Aplicando filtro de cidade:', filters.city)
       query = query.eq('city', filters.city)
     }
 
     switch (filters?.sortBy) {
       case 'price_asc':
+        console.log('📊 Ordenando por preço (ascendente)')
         query = query.order('hourly_rate', { ascending: true }); break
       case 'price_desc':
+        console.log('📊 Ordenando por preço (descendente)')
         query = query.order('hourly_rate', { ascending: false }); break
       case 'distance':
+        console.log('📊 Ordenando por distância')
         query = query.order('distance_km', { ascending: true }); break
       default:
+        console.log('📊 Ordenando por rating')
         query = query.order('rating', { ascending: false })
     }
 
     const { data, error: err, count } = await query
 
     if (err) {
+      console.error('❌ Erro ao buscar profissionais:', err.message)
       error.value = err.message
     } else {
+      console.log('✅ Profissionais retornados:', count ?? data?.length ?? 0)
       professionals.value = data as Professional[]
       total.value = count ?? 0
     }

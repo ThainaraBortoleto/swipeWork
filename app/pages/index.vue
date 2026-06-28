@@ -1,16 +1,30 @@
 <template>
   <div class="min-h-screen bg-slate-900">
-    <CatalogPicker
-      v-if="!selectedCategory"
-      :counts="categoryCounts"
-      @select="selectCategory"
-      @view-all="selectedCategory = null"
-      @apply-filters="handleApplyFilters"
-    />
+    <!-- Loading state -->
+    <div
+      v-if="professionals.length === 0"
+      class="min-h-screen flex items-center justify-center"
+    >
+      <div class="flex flex-col items-center gap-4">
+        <div class="w-12 h-12 border-4 border-slate-600 border-t-indigo-500 rounded-full animate-spin"></div>
+        <p class="text-slate-400 text-sm">Carregando profissionais...</p>
+      </div>
+    </div>
 
+    <!-- Catalog Picker -->
+    <template v-else-if="!selectedCategory">
+      <CatalogPicker
+        :counts="categoryCounts"
+        @select="selectCategory"
+        @view-all="selectedCategory = null"
+        @apply-filters="handleApplyFilters"
+      />
+    </template>
+
+    <!-- Swipe/List View -->
     <div v-else class="min-h-screen">
       <!-- Toggle swipe / lista -->
-      <div class="flex items-center justify-between px-8 pt-8">
+      <div class="flex items-center justify-between px-8 py-3">
         <button
           class="text-slate-400 hover:text-white text-sm transition-colors"
           @click="selectedCategory = null"
@@ -26,9 +40,10 @@
       </div>
 
       <!-- Swipe -->
-      <div v-if="viewMode === 'swipe'" class="flex items-center justify-center p-8">
+      <div v-if="viewMode === 'swipe'" class="flex items-center justify-center flex-1 px-4 py-4">
         <ProfessionalSwipeDeck
           :professionals="professionals"
+          :loading="loading"
           @match="onMatch"
           @skip="onSkip"
           @back="selectedCategory = null"
@@ -90,7 +105,7 @@ definePageMeta({
   ssr: false,
 })
 
-const { professionals, total, fetchAll } = useProfessionals()
+const { professionals, total, fetchAll, loading } = useProfessionals()
 const filterStore = useFilterStore()
 
 const selectedCategory = ref<Category | null>(null)
@@ -123,18 +138,29 @@ const debouncedFetch = useDebounce(() => {
 
 function recalculateCategoryCounts() {
   const counts: Record<string, number> = {}
+  console.log('🔢 Calculando contadores para', professionals.value.length, 'profissionais')
+
   for (const p of professionals.value) {
     counts[p.category] = (counts[p.category] ?? 0) + 1
   }
+
   categoryCounts.value = counts
-  console.log('📊 Contadores atualizados:', counts)
+  console.log('✅ Contadores finais:', counts)
+  console.log('📊 Total geral:', Object.values(counts).reduce((a, b) => a + b, 0), 'profissionais')
 }
 
 async function handleApplyFilters() {
   console.log('🔍 Iniciando aplicação de filtros')
+  const filters = getStoreFilters()
+  console.log('📋 Filtros a aplicar:', {
+    state: filters.state,
+    city: filters.city,
+    category: filters.category,
+    search: filters.search,
+  })
 
   // Fetch com filtros do store
-  await fetchAll(getStoreFilters())
+  await fetchAll(filters)
   console.log('✅ Fetch completado. Total de profissionais:', professionals.value.length)
 
   // Aguarda um tick de reatividade do Vue para garantir que professionals.value foi atualizado
@@ -145,17 +171,19 @@ async function handleApplyFilters() {
 
   console.log('✅ Filtros aplicados com sucesso!')
   console.log('📊 Profissionais agora:', professionals.value.length)
+  console.log('📊 Contadores finais:', categoryCounts.value)
 }
 
 // Watcher que recalcula contadores quando profissionais mudam
 watch(
-  () => professionals.value.length,
+  professionals,
   () => {
-    if (!selectedCategory.value) {
+    if (!selectedCategory.value && isInitialized.value) {
       console.log('⚡ Profissionais mudaram, atualizando contadores...')
       recalculateCategoryCounts()
     }
-  }
+  },
+  { deep: true }
 )
 
 // Reage imediatamente a mudanças de filtro de localização
@@ -175,8 +203,10 @@ watchEffect(async () => {
   if (!selectedCategory.value) {
     console.log('✅ Recarregando profissionais com filtros:', { state, city })
     await fetchAll(getStoreFilters())
+    console.log('📦 Total de profissionais após fetch:', professionals.value.length)
     await nextTick()
     recalculateCategoryCounts()
+    console.log('📊 Contadores após limpeza:', categoryCounts.value)
   }
 })
 
@@ -189,13 +219,18 @@ async function selectCategory(category: Category) {
   await fetchAll(getStoreFilters())
 }
 
-// Reseta categoria quando volta para CatalogPicker
+// Reseta categoria e recarrega dados quando volta para CatalogPicker
 watch(
   () => selectedCategory.value,
-  (newCategory) => {
+  async (newCategory) => {
     if (newCategory === null) {
-      console.log('🔄 Voltando para CatalogPicker, resetando categoria')
+      console.log('🔄 Voltando para CatalogPicker, resetando e recarregando dados')
       filterStore.setCategory('')
+
+      // Recarrega profissionais SEM filtro de categoria
+      await fetchAll(getStoreFilters())
+      await nextTick()
+      recalculateCategoryCounts()
     }
   }
 )
@@ -209,10 +244,17 @@ function onSkip(professional: Professional) {
 }
 
 onMounted(async () => {
+  console.log('🚀 onMounted iniciado')
+  console.log('📦 professionals.value.length antes:', professionals.value.length)
+
   // Fetch inicial SEM filtros para mostrar total de profissionais
   console.log('📥 Carregando profissionais iniciais...')
   await fetchAll()
   console.log('✅ Profissionais carregados:', professionals.value.length)
+
+  // Aguarda que a reatividade se propague antes de recalcular
+  await nextTick()
+  console.log('⏳ Após nextTick, profissionais:', professionals.value.length)
 
   // Atualiza contadores no store com o total
   recalculateCategoryCounts()
