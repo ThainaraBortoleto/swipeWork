@@ -184,18 +184,23 @@ function handleSkip() {
 
 async function handleContact() {
   if (professional.value) {
-    console.log('📨 Enviando mensagem para:', professional.value.name)
-
     // Simular delay de envio (500ms)
     await new Promise(resolve => setTimeout(resolve, 500))
 
     // Mostrar notificação elegante de sucesso
     showSuccess(`Mensagem enviada para ${professional.value.name}!`, 4000)
-    console.log('✅ Mensagem enviada com sucesso!')
   }
 }
 
 useSeoMeta({
-  title: () => professional.value ? `${professional.value.name} - SwipeWork` : 'SwipeWork',
+  title: () => professional.value ? `${professional.value.name} - ${professional.value.profession} | SwipeWork` : 'SwipeWork',
+  description: () => professional.value
+    ? `${professional.value.name} - ${professional.value.profession}. Avaliação: ${professional.value.rating}/5. R$ ${professional.value.hourlyRate}/h. ${professional.value.location.city}, ${professional.value.location.state}.`
+    : 'Encontre profissionais freelancers qualificados no SwipeWork',
+  ogTitle: () => professional.value ? `${professional.value.name} - ${professional.value.profession}` : 'SwipeWork',
+  ogDescription: () => professional.value ? professional.value.description : 'Catálogo interativo de profissionais freelancers',
+  ogImage: () => professional.value ? professional.value.avatar : undefined,
+  ogType: 'profile',
+  twitterCard: 'summary_large_image',
 })
 </script>

@@ -9,6 +9,7 @@ interface MatchRecord {
 }
 
 export function useMatches() {
+  // Nota: matches não persistem após refresh. Apenas skips e history são persistidos.
   const matches = useState<Professional[]>('matches:list', () => [])
   const skips = useState<Professional[]>('skips:list', () => [])
   const history = useState<MatchRecord[]>('matches:history', () => [])

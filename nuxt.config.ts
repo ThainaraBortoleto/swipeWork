@@ -20,4 +20,11 @@ export default defineNuxtConfig({
       'composables/**',
     ],
   },
+  vite: {
+    optimizeDeps: {
+      include: [
+        'ws',
+      ],
+    },
+  },
 })

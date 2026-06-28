@@ -1,22 +1,11 @@
 export default defineNuxtPlugin(() => {
   if (process.client) {
-    // Restaura matches do localStorage
-    const matchesKey = 'nuxt-state-matches:list'
+    // Restaura skips e history do localStorage (matches não persistem)
     const skipsKey = 'nuxt-state-skips:list'
     const historyKey = 'nuxt-state-matches:history'
 
-    const savedMatches = localStorage.getItem(matchesKey)
     const savedSkips = localStorage.getItem(skipsKey)
     const savedHistory = localStorage.getItem(historyKey)
-
-    if (savedMatches) {
-      try {
-        const { matches } = useMatches()
-        matches.value = JSON.parse(savedMatches)
-      } catch (e) {
-        console.error('Erro ao restaurar matches:', e)
-      }
-    }
 
     if (savedSkips) {
       try {
@@ -36,16 +25,8 @@ export default defineNuxtPlugin(() => {
       }
     }
 
-    // Monitora mudanças e salva no localStorage
-    const { matches, skips, history } = useMatches()
-
-    watch(
-      matches,
-      (newMatches) => {
-        localStorage.setItem(matchesKey, JSON.stringify(newMatches))
-      },
-      { deep: true }
-    )
+    // Monitora mudanças e salva no localStorage (apenas skips e history)
+    const { skips, history } = useMatches()
 
     watch(
       skips,

@@ -207,8 +207,11 @@ docker-compose exec app bash   # Acessar container
 - [README.DOCKER.md](./README.DOCKER.md) — Guia Docker aprofundado
 - [GET_CREDENTIALS.md](./GET_CREDENTIALS.md) — Como obter credenciais Supabase
 - [DOCKER_CHECKLIST.md](./DOCKER_CHECKLIST.md) — Checklist de validação
-- [CLAUDE.md](./CLAUDE.md) — Regras de desenvolvimento
+
+## Desenvolvimento
+
+Desenvolvido por Thainara Bortoleto com auxílio de IA (Claude 3.5 Sonnet) para implementação de funcionalidades complexas, otimização de código e resolução de problemas técnicos.
 
 ## Autor
 
-Desenvolvido por Thainara Bortoleto
+Thainara Bortoleto

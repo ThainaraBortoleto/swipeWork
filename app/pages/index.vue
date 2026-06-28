@@ -67,7 +67,6 @@
           <div class="lg:col-span-1">
             <div class="sticky top-24 space-y-6">
               <!-- Location Filter Component -->
-              <ProfessionalLocationFilter v-if="viewMode === 'list'" />
 
               <!-- Info -->
               <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
@@ -108,10 +107,22 @@ definePageMeta({
 const { professionals, total, fetchAll, loading } = useProfessionals()
 const filterStore = useFilterStore()
 
+const { width } = useWindowSize()
+const isMobile = computed(() => width.value < 768)
+
 const selectedCategory = ref<Category | null>(null)
-const viewMode = ref<'swipe' | 'list'>('swipe')
+const viewMode = ref<'swipe' | 'list'>('list')
 const isInitialized = ref(false)
 const categoryCounts = ref<Record<string, number>>({})
+
+// Define modo padrão baseado no tamanho da tela
+onMounted(() => {
+  viewMode.value = isMobile.value ? 'swipe' : 'list'
+})
+
+watch(isMobile, (mobile) => {
+  viewMode.value = mobile ? 'swipe' : 'list'
+})
 
 function getStoreFilters() {
   return {
@@ -138,40 +149,25 @@ const debouncedFetch = useDebounce(() => {
 
 function recalculateCategoryCounts() {
   const counts: Record<string, number> = {}
-  console.log('🔢 Calculando contadores para', professionals.value.length, 'profissionais')
 
   for (const p of professionals.value) {
     counts[p.category] = (counts[p.category] ?? 0) + 1
   }
 
   categoryCounts.value = counts
-  console.log('✅ Contadores finais:', counts)
-  console.log('📊 Total geral:', Object.values(counts).reduce((a, b) => a + b, 0), 'profissionais')
 }
 
 async function handleApplyFilters() {
-  console.log('🔍 Iniciando aplicação de filtros')
   const filters = getStoreFilters()
-  console.log('📋 Filtros a aplicar:', {
-    state: filters.state,
-    city: filters.city,
-    category: filters.category,
-    search: filters.search,
-  })
 
   // Fetch com filtros do store
   await fetchAll(filters)
-  console.log('✅ Fetch completado. Total de profissionais:', professionals.value.length)
 
   // Aguarda um tick de reatividade do Vue para garantir que professionals.value foi atualizado
   await nextTick()
 
   // Recalcula os contadores
   recalculateCategoryCounts()
-
-  console.log('✅ Filtros aplicados com sucesso!')
-  console.log('📊 Profissionais agora:', professionals.value.length)
-  console.log('📊 Contadores finais:', categoryCounts.value)
 }
 
 // Watcher que recalcula contadores quando profissionais mudam
@@ -179,7 +175,6 @@ watch(
   professionals,
   () => {
     if (!selectedCategory.value && isInitialized.value) {
-      console.log('⚡ Profissionais mudaram, atualizando contadores...')
       recalculateCategoryCounts()
     }
   },
@@ -193,20 +188,15 @@ watchEffect(async () => {
     return
   }
 
-  // Acessa os valores reativos do store
-  const state = filterStore.state
-  const city = filterStore.city
-
-  console.log('👀 [Store] Filtros mudaram:', { state, city })
+  // Acessa os valores reativos do store (triggers reactivity)
+  filterStore.state
+  filterStore.city
 
   // Se não está em uma categoria (está no CatalogPicker)
   if (!selectedCategory.value) {
-    console.log('✅ Recarregando profissionais com filtros:', { state, city })
     await fetchAll(getStoreFilters())
-    console.log('📦 Total de profissionais após fetch:', professionals.value.length)
     await nextTick()
     recalculateCategoryCounts()
-    console.log('📊 Contadores após limpeza:', categoryCounts.value)
   }
 })
 
@@ -244,24 +234,16 @@ function onSkip(professional: Professional) {
 }
 
 onMounted(async () => {
-  console.log('🚀 onMounted iniciado')
-  console.log('📦 professionals.value.length antes:', professionals.value.length)
-
   // Fetch inicial SEM filtros para mostrar total de profissionais
-  console.log('📥 Carregando profissionais iniciais...')
   await fetchAll()
-  console.log('✅ Profissionais carregados:', professionals.value.length)
 
   // Aguarda que a reatividade se propague antes de recalcular
   await nextTick()
-  console.log('⏳ Após nextTick, profissionais:', professionals.value.length)
 
   // Atualiza contadores no store com o total
   recalculateCategoryCounts()
-  console.log('✅ Contadores calculados:', categoryCounts.value)
 
   // Marca inicialização como completa (permite watchers reagirem)
   isInitialized.value = true
-  console.log('✅ Inicialização completa')
 })
 </script>
