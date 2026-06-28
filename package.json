@@ -1,0 +1,29 @@
+{
+  "name": "swipework",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "prepare": "nuxt prepare",
+    "generate:data": "node --import tsx/esm scripts/generate-data.ts",
+    "seed": "node --import tsx/esm scripts/seed.ts"
+  },
+  "dependencies": {
+    "@nuxt/icon": "^2.2.4",
+    "@supabase/supabase-js": "^2.108.2",
+    "@vueuse/core": "^14.3.0",
+    "@vueuse/nuxt": "^14.3.0",
+    "nuxt": "^4.4.8",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.38",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.22.4"
+  }
+}
