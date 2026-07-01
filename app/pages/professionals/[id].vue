@@ -22,7 +22,7 @@
         <div class="flex-1">
           <h1 class="text-3xl font-black text-white">{{ professional.name }}</h1>
           <p class="text-indigo-400 font-semibold text-lg">{{ professional.profession }}</p>
-          <p class="text-slate-500 text-sm mt-1">{{ professional.city }}, {{ professional.state }}</p>
+          <p class="text-slate-500 text-sm mt-1">{{ professional.location.city }}, {{ professional.location.state }}</p>
         </div>
       </div>
 
@@ -30,7 +30,7 @@
       <div class="flex items-center justify-between bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700">
         <div>
           <p class="text-slate-400 text-sm mb-1">Valor por hora</p>
-          <p class="text-white text-3xl font-black">R$ {{ professional.hourly_rate }}<span class="text-slate-400 text-base font-normal">/h</span></p>
+          <p class="text-white text-3xl font-black">R$ {{ professional.hourlyRate }}<span class="text-slate-400 text-base font-normal">/h</span></p>
         </div>
         <span
           class="text-sm font-medium px-4 py-2 rounded-full border"
@@ -64,7 +64,7 @@
                 &#9733;
               </span>
             </div>
-            <span class="text-slate-500 text-sm">{{ professional.review_count }} avaliacoes</span>
+            <span class="text-slate-500 text-sm">{{ professional.reviewCount }} avaliacoes</span>
           </div>
         </div>
       </div>
@@ -151,6 +151,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  ssr: false,
+})
+
 const route = useRoute()
 const router = useRouter()
 const { getById, load, professionals } = useProfessionals()
@@ -195,7 +199,7 @@ async function handleContact() {
 useSeoMeta({
   title: () => professional.value ? `${professional.value.name} - ${professional.value.profession} | SwipeWork` : 'SwipeWork',
   description: () => professional.value
-    ? `${professional.value.name} - ${professional.value.profession}. Avaliação: ${professional.value.rating}/5. R$ ${professional.value.hourlyRate}/h. ${professional.value.location.city}, ${professional.value.location.state}.`
+    ? `${professional.value.name} - ${professional.value.profession}. Avaliação: ${professional.value.rating}/5. R$ ${professional.value.hourlyRate}/h.`
     : 'Encontre profissionais freelancers qualificados no SwipeWork',
   ogTitle: () => professional.value ? `${professional.value.name} - ${professional.value.profession}` : 'SwipeWork',
   ogDescription: () => professional.value ? professional.value.description : 'Catálogo interativo de profissionais freelancers',
