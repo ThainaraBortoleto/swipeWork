@@ -77,7 +77,7 @@
           </div>
 
           <!-- Cards Grid -->
-          <div class="lg:col-span-3">
+          <div ref="scrollContainer" class="lg:col-span-3 max-h-[calc(100vh-200px)] overflow-y-auto">
             <div v-if="professionals.length === 0" class="py-16 text-center">
               <p class="text-white text-lg font-bold mb-2">Nenhum profissional encontrado</p>
               <p class="text-slate-400 text-sm">Tente ajustar os filtros</p>
@@ -91,16 +91,16 @@
                 />
               </div>
 
-              <!-- Load More Button -->
-              <div v-if="hasMore()" class="flex justify-center">
-                <button
-                  class="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-colors"
-                  @click="loadMore"
-                >
-                  Carregar mais
-                </button>
+              <!-- Loading indicator -->
+              <div v-if="loadingMore" class="flex justify-center py-8">
+                <div class="flex flex-col items-center gap-3">
+                  <div class="w-8 h-8 border-3 border-slate-600 border-t-indigo-500 rounded-full animate-spin"></div>
+                  <p class="text-slate-400 text-sm">Carregando mais profissionais...</p>
+                </div>
               </div>
-              <div v-else class="text-center py-8">
+
+              <!-- End message -->
+              <div v-else-if="!hasMore()" class="text-center py-8">
                 <p class="text-slate-400 text-sm">Todos os profissionais carregados</p>
               </div>
             </div>
@@ -119,7 +119,7 @@ definePageMeta({
   ssr: false,
 })
 
-const { professionals, displayedProfessionals, total, fetchAll, loading, loadMore, hasMore } = useProfessionals()
+const { professionals, displayedProfessionals, total, fetchAll, loading, loadMore, loadingMore, hasMore } = useProfessionals()
 const filterStore = useFilterStore()
 
 const { width } = useWindowSize()
@@ -129,6 +129,18 @@ const selectedCategory = ref<Category | null>(null)
 const viewMode = ref<'swipe' | 'list'>('list')
 const isInitialized = ref(false)
 const categoryCounts = ref<Record<string, number>>({})
+const scrollContainer = ref<HTMLElement | null>(null)
+
+// Infinite scroll
+useInfiniteScroll(
+  scrollContainer,
+  async () => {
+    if (hasMore() && !loadingMore.value) {
+      await loadMore()
+    }
+  },
+  { distance: 200 }
+)
 
 // Define modo padrão baseado no tamanho da tela
 onMounted(() => {

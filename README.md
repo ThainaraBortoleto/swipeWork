@@ -23,9 +23,7 @@ SwipeWork é um projeto frontend onde usuários podem navegar por profissionais 
 
 ### Fase 3 — Planejado
 - Touch swipe para mobile (PWA)
-- Filtros avançados (preço, rating)
 - Infinite scroll
-- Autenticação com Supabase Auth
 
 ---
 
@@ -213,5 +211,4 @@ docker-compose exec app bash   # Acessar container
 Desenvolvido por Thainara Bortoleto com auxílio de IA (Claude 3.5 Sonnet) documentação e melhorias tecnicas
 
 ## Autor
-
 Thainara Bortoleto

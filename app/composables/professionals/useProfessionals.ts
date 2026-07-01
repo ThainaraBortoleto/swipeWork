@@ -15,6 +15,7 @@ export function useProfessionals() {
   const pageSize = ref(20)
   const displayedCount = ref(0)
   const lastFilters = ref<Filters>()
+  const loadingMore = ref(false)
 
   async function load() {
     if (professionals.value.length === 0) {
@@ -79,10 +80,18 @@ export function useProfessionals() {
     loading.value = false
   }
 
-  function loadMore() {
+  async function loadMore() {
+    if (loadingMore.value || !hasMore()) return
+
+    loadingMore.value = true
+    // Simulate slight delay for UX
+    await new Promise(resolve => setTimeout(resolve, 300))
+
     const nextCount = displayedCount.value + pageSize.value
     displayedProfessionals.value = professionals.value.slice(0, nextCount)
     displayedCount.value = nextCount
+
+    loadingMore.value = false
   }
 
   function hasMore() {
@@ -124,6 +133,7 @@ export function useProfessionals() {
     professionals,
     displayedProfessionals,
     loading,
+    loadingMore,
     error,
     total,
     states,
