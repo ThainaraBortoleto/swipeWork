@@ -2,12 +2,18 @@ import { createClient } from '@supabase/supabase-js'
 import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import { config } from 'dotenv'
+import ws from 'ws'
 
 config() // carrega o .env
 
 const supabase = createClient(
   process.env.NUXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
+  {
+    realtime: {
+      transport: ws,
+    },
+  }
 )
 
 async function seedDatabase() {
