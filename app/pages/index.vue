@@ -82,12 +82,27 @@
               <p class="text-white text-lg font-bold mb-2">Nenhum profissional encontrado</p>
               <p class="text-slate-400 text-sm">Tente ajustar os filtros</p>
             </div>
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <ProfessionalCard
-                v-for="professional in professionals"
-                :key="professional.id"
-                :professional="professional"
-              />
+            <div v-else>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <ProfessionalCard
+                  v-for="professional in displayedProfessionals"
+                  :key="professional.id"
+                  :professional="professional"
+                />
+              </div>
+
+              <!-- Load More Button -->
+              <div v-if="hasMore()" class="flex justify-center">
+                <button
+                  class="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-colors"
+                  @click="loadMore"
+                >
+                  Carregar mais
+                </button>
+              </div>
+              <div v-else class="text-center py-8">
+                <p class="text-slate-400 text-sm">Todos os profissionais carregados</p>
+              </div>
             </div>
           </div>
         </div>
@@ -104,7 +119,7 @@ definePageMeta({
   ssr: false,
 })
 
-const { professionals, total, fetchAll, loading } = useProfessionals()
+const { professionals, displayedProfessionals, total, fetchAll, loading, loadMore, hasMore } = useProfessionals()
 const filterStore = useFilterStore()
 
 const { width } = useWindowSize()
@@ -214,7 +229,6 @@ watch(
   () => selectedCategory.value,
   async (newCategory) => {
     if (newCategory === null) {
-      console.log('🔄 Voltando para CatalogPicker, resetando e recarregando dados')
       filterStore.setCategory('')
 
       // Recarrega profissionais SEM filtro de categoria
@@ -226,11 +240,11 @@ watch(
 )
 
 function onMatch(professional: Professional) {
-  console.log('match:', professional.name)
+  // Match event handler
 }
 
 function onSkip(professional: Professional) {
-  console.log('skip:', professional.name)
+  // Skip event handler
 }
 
 onMounted(async () => {
