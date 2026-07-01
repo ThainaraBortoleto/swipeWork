@@ -1,6 +1,30 @@
 import type { Professional } from '~/types'
 import type { Filters } from './useFilters'
 
+function transformFromDatabase(raw: any): Professional {
+  return {
+    id: raw.id,
+    name: raw.name,
+    avatar: raw.avatar,
+    profession: raw.profession,
+    category: raw.category,
+    description: raw.description,
+    hourlyRate: raw.hourly_rate,
+    rating: raw.rating,
+    reviewCount: raw.review_count,
+    location: {
+      city: raw.city,
+      state: raw.state,
+      distanceKm: raw.distance_km,
+    },
+    tags: raw.tags,
+    services: raw.services,
+    available: raw.available,
+    responseTimeHours: raw.response_time_hours,
+    joinedAt: raw.joined_at,
+  }
+}
+
 export function useProfessionals() {
   const supabase = useSupabase()
   const professionals = useState<Professional[]>('professionals', () => [])
@@ -72,7 +96,7 @@ export function useProfessionals() {
     if (err) {
       error.value = err.message
     } else {
-      professionals.value = data as Professional[]
+      professionals.value = data?.map(transformFromDatabase) ?? []
       total.value = count ?? 0
       loadMore()
     }

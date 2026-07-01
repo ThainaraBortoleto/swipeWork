@@ -104,11 +104,11 @@
                     ★
                   </span>
                 </div>
-                <span class="text-slate-500 text-xs">{{ professional.rating }} ({{ professional.review_count }})</span>
+                <span class="text-slate-500 text-xs">{{ professional.rating }} ({{ professional.reviewCount }})</span>
               </div>
 
               <p class="text-white font-bold text-lg mb-4">
-                R$ {{ professional.hourly_rate }}<span class="text-slate-400 text-sm font-normal">/h</span>
+                R$ {{ professional.hourlyRate }}<span class="text-slate-400 text-sm font-normal">/h</span>
               </p>
 
               <!-- Actions -->
@@ -233,6 +233,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  ssr: false,
+})
+
 import type { Professional } from '~/types'
 
 const { matches, skips, history, removeMatch, removeSkip, addMatch } = useMatches()

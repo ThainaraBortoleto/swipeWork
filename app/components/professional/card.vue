@@ -76,7 +76,7 @@
 
         <!-- Hourly Rate -->
         <p class="text-white font-bold text-xl">
-          R$ {{ professional.hourly_rate }}<span class="text-slate-400 text-sm font-normal">/h</span>
+          R$ {{ professional.hourlyRate }}<span class="text-slate-400 text-sm font-normal">/h</span>
         </p>
 
         <!-- Description (only in deck) -->

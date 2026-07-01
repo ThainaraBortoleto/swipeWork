@@ -44,7 +44,7 @@
 
       <!-- Calculadora de orçamento -->
       <ProfessionalBudgetCalculator
-        :hourly-rate="professional.hourly_rate"
+        :hourly-rate="professional.hourlyRate"
         class="mb-6"
       />
 

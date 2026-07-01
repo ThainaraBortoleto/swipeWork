@@ -2,7 +2,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: [
-    '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     '@nuxt/icon',
   ],
@@ -20,9 +19,19 @@ export default defineNuxtConfig({
       'composables/**',
     ],
   },
+  css: ['~/app.css'],
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
   vite: {
     optimizeDeps: {
       include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        'pinia',
         'ws',
       ],
     },
