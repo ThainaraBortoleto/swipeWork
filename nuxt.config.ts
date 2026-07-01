@@ -8,6 +8,9 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
+  nitro: {
+    preset: 'cloudflare-pages',
+  },
   runtimeConfig: {
     public: {
       supabaseUrl: '',
